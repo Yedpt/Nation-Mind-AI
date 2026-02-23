@@ -40,12 +40,29 @@ class EventService:
         ).order_by(Event.created_at.desc()).limit(limit).all()
     
     @staticmethod
-    def create(db: Session, event_data: EventCreate) -> Event:
-        """Crear un nuevo evento"""
+    def create(db: Session, event_data: EventCreate, add_to_rag: bool = True) -> Event:
+        """
+        Crear un nuevo evento
+        
+        Args:
+            db: Sesión de base de datos
+            event_data: Datos del evento
+            add_to_rag: Si True, añade el evento a ChromaDB para RAG
+        """
         event = Event(**event_data.model_dump())
         db.add(event)
         db.commit()
         db.refresh(event)
+        
+        # Añadir a sistema RAG automáticamente
+        if add_to_rag:
+            try:
+                from .rag_service import get_rag_service
+                rag = get_rag_service()
+                rag.add_event(event)
+            except Exception as e:
+                print(f"⚠️ Warning: No se pudo añadir evento a RAG: {e}")
+        
         return event
     
     @staticmethod

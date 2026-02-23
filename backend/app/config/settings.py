@@ -23,6 +23,7 @@ class Settings(BaseSettings):
     GROQ_API_KEY: str = os.getenv("GROQ_API_KEY", "")
     
     # Configuración de la aplicación
+    ENVIRONMENT: str = os.getenv("ENVIRONMENT", "development")
     DEBUG: bool = os.getenv("DEBUG", "True").lower() == "true"
     API_HOST: str = os.getenv("API_HOST", "0.0.0.0")
     API_PORT: int = int(os.getenv("API_PORT", "8000"))
@@ -32,6 +33,10 @@ class Settings(BaseSettings):
     
     # ChromaDB (RAG)
     CHROMA_PERSIST_DIR: str = os.getenv("CHROMA_PERSIST_DIR", "./chroma_db")
+    CHROMADB_HOST: str = os.getenv("CHROMADB_HOST", "localhost")
+    CHROMADB_PORT: int = int(os.getenv("CHROMADB_PORT", "8001"))
+    # Si USE_CHROMADB_HTTP es True, usa HttpClient (Docker); si no, usa PersistentClient (local)
+    USE_CHROMADB_HTTP: bool = os.getenv("USE_CHROMADB_HTTP", "False").lower() == "true"
     
     # LLM Configuration
     LLM_MODEL: str = os.getenv("LLM_MODEL", "llama-3.1-70b-versatile")
@@ -41,6 +46,7 @@ class Settings(BaseSettings):
     class Config:
         env_file = ".env"
         case_sensitive = True
+        extra = "ignore"  #  Ignorar variables extra del .env
 
 
 # Instancia global de configuración

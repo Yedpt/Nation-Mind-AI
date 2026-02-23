@@ -39,14 +39,18 @@ class NationService:
         return nation
     
     @staticmethod
-    def update(db: Session, nation_id: int, nation_data: NationUpdate) -> Optional[Nation]:
-        """Actualizar una nación existente"""
+    def update(db: Session, nation_id: int, nation_data) -> Optional[Nation]:
+        """Actualizar una nación existente (acepta NationUpdate o dict)"""
         nation = NationService.get_by_id(db, nation_id)
         if not nation:
             return None
         
         # Actualizar solo los campos que se enviaron
-        update_data = nation_data.model_dump(exclude_unset=True)
+        if isinstance(nation_data, dict):
+            update_data = nation_data
+        else:
+            update_data = nation_data.model_dump(exclude_unset=True)
+        
         for key, value in update_data.items():
             setattr(nation, key, value)
         

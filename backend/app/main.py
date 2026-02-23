@@ -2,9 +2,18 @@
 Nation-Mind AI Backend
 FastAPI application con arquitectura MVC
 """
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
+import time
+import logging
+
+# Configurar logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
 
 # Importar controllers (routers)
 from .controllers import (
@@ -12,7 +21,10 @@ from .controllers import (
     game_router,
     events_router,
     turns_router,
-    relations_router
+    relations_router,
+    memory_router,
+    agent_router,
+    battle_router
 )
 
 # Importar modelos para crear tablas
@@ -58,6 +70,23 @@ app.add_middleware(
 )
 
 
+# Middleware para logging de peticiones
+@app.middleware("http")
+async def log_requests(request: Request, call_next):
+    start_time = time.time()
+    
+    # Log de la petición entrante
+    logger.info(f"🌐 {request.method} {request.url.path}")
+    
+    response = await call_next(request)
+    
+    # Log de la respuesta
+    process_time = time.time() - start_time
+    logger.info(f"✅ {request.method} {request.url.path} - Status: {response.status_code} - Time: {process_time:.3f}s")
+    
+    return response
+
+
 # ==================== RUTAS BÁSICAS ====================
 
 @app.get("/")
@@ -97,6 +126,15 @@ app.include_router(turns_router)
 
 # Relations (Relaciones diplomáticas)
 app.include_router(relations_router)
+
+# Battles (Sistema de combate)
+app.include_router(battle_router)
+
+# Memory (Sistema RAG - Memoria de eventos)
+app.include_router(memory_router)
+
+# Agents (Agentes IA con LangGraph)
+app.include_router(agent_router)
 
 
 # ==================== DESARROLLO ====================

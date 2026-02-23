@@ -37,6 +37,9 @@ class Nation(Base):
     # Relaciones con otras tablas
     # turns = relationship("Turn", back_populates="nation")
     # events = relationship("Event", back_populates="nation")
+    battles_as_attacker = relationship("Battle", foreign_keys="Battle.attacker_id", back_populates="attacker")
+    battles_as_defender = relationship("Battle", foreign_keys="Battle.defender_id", back_populates="defender")
+    battles_won = relationship("Battle", foreign_keys="Battle.winner_id", back_populates="winner")
     
     def __repr__(self):
         return f"<Nation(name='{self.name}', personality='{self.personality}', ai={self.ai_controlled})>"

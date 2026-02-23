@@ -54,6 +54,12 @@ class NationSummary(BaseModel):
     id: int
     name: str
     personality: str
+    gold: int
+    troops: int
+    territories: int
+    military_power: float
+    economic_power: float
+    diplomatic_influence: float
     ai_controlled: bool
     is_active: bool
 

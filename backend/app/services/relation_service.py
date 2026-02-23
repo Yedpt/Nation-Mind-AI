@@ -57,12 +57,17 @@ class RelationService:
     
     @staticmethod
     def update(db: Session, relation_id: int, relation_data: RelationUpdate) -> Optional[Relation]:
-        """Actualizar una relación existente"""
+        """Actualizar una relación existente (acepta RelationUpdate o dict)"""
         relation = RelationService.get_by_id(db, relation_id)
         if not relation:
             return None
         
-        update_data = relation_data.model_dump(exclude_unset=True)
+        # Soporte para dict o Pydantic
+        if isinstance(relation_data, dict):
+            update_data = relation_data
+        else:
+            update_data = relation_data.model_dump(exclude_unset=True)
+        
         for key, value in update_data.items():
             setattr(relation, key, value)
         

@@ -6,6 +6,7 @@ from .nation import Nation
 from .turn import Turn
 from .event import Event
 from .relation import Relation
+from .battle import Battle
 
 __all__ = [
     "Base",
@@ -16,5 +17,6 @@ __all__ = [
     "Nation",
     "Turn",
     "Event",
-    "Relation"
+    "Relation",
+    "Battle"
 ]
