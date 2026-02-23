@@ -1,7 +1,9 @@
-version: '3.8'
-
 services:
-  # PostgreSQL Database
+  # ===========================
+  # BASE DE DATOS
+  # ===========================
+  
+  # PostgreSQL - Base de datos principal
   postgres:
     image: postgres:15-alpine
     container_name: nationmind_postgres
@@ -14,13 +16,116 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ./backend/init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U nationmind"]
+      test: ["CMD-SHELL", "pg_isready -U nationmind -d nationmind_db"]
       interval: 10s
       timeout: 5s
       retries: 5
+    networks:
+      - nationmind_network
 
-  # Redis Cache (opcional, para fase avanzada)
+  # ChromaDB - Base de datos vectorial para RAG
+  chromadb:
+    image: chromadb/chroma:latest
+    container_name: nationmind_chromadb
+    restart: unless-stopped
+    ports:
+      - "8001:8000"
+    volumes:
+      - chromadb_data:/chroma/chroma
+    environment:
+      - IS_PERSISTENT=TRUE
+      - ANONYMIZED_TELEMETRY=FALSE
+    # Health check desactivado porque la imagen no tiene curl/wget instalado
+    # ChromaDB funciona correctamente - verificado manualmente en puerto 8001
+    # healthcheck:
+    #   test: ["CMD", "curl", "-f", "http://localhost:8000/api/v2/heartbeat"]
+    #   interval: 10s
+    #   timeout: 5s
+    #   retries: 5
+    networks:
+      - nationmind_network
+
+  # ===========================
+  # BACKEND
+  # ===========================
+  
+  # FastAPI Backend - Agentes IA + LangGraph
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: nationmind_backend
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      # Base de datos
+      DATABASE_URL: postgresql://nationmind:dev123@postgres:5432/nationmind_db
+      
+      # Groq API (cargar desde .env - OBLIGATORIO)
+      GROQ_API_KEY: ${GROQ_API_KEY}
+      
+      # Configuración LLM
+      LLM_MODEL: llama-3.1-8b-instant
+      LLM_TEMPERATURE: 0.7
+      LLM_MAX_TOKENS: 1024
+      
+      # ChromaDB
+      CHROMADB_HOST: chromadb
+      CHROMADB_PORT: 8000
+      USE_CHROMADB_HTTP: "True"
+      
+      # Entorno
+      ENVIRONMENT: development
+      DEBUG: True
+      PYTHONUNBUFFERED: 1
+    volumes:
+      - ./backend:/app
+      - backend_chroma:/app/chroma_data
+    depends_on:
+      postgres:
+        condition: service_healthy
+      chromadb:
+        condition: service_started
+    networks:
+      - nationmind_network
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+
+  # ===========================
+  # FRONTEND
+  # ===========================
+  
+  # Next.js Frontend - UI del juego
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    container_name: nationmind_frontend
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: development
+      NEXT_PUBLIC_API_URL: http://localhost:8000
+      NEXT_TELEMETRY_DISABLED: 1
+    # NO montar código en desarrollo - usar el de la imagen
+    # volumes:
+    #   - ./frontend:/app
+    #   - frontend_node_modules:/app/node_modules
+    #   - frontend_next:/app/.next
+    depends_on:
+      - backend
+    networks:
+      - nationmind_network
+    command: npm run dev
+
+  # ===========================
+  # HERRAMIENTAS OPCIONALES
+  # ===========================
+
+  # Redis Cache (para caché de sesiones - opcional)
   redis:
     image: redis:7-alpine
     container_name: nationmind_redis
@@ -34,8 +139,10 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    networks:
+      - nationmind_network
 
-  # pgAdmin (GUI para PostgreSQL - opcional)
+  # pgAdmin - GUI para PostgreSQL (opcional)
   pgadmin:
     image: dpage/pgadmin4:latest
     container_name: nationmind_pgadmin
@@ -49,15 +156,31 @@ services:
       - pgadmin_data:/var/lib/pgadmin
     depends_on:
       - postgres
+    networks:
+      - nationmind_network
 
+# ===========================
+# VOLUMES
+# ===========================
 volumes:
   postgres_data:
+    driver: local
+  chromadb_data:
+    driver: local
+  backend_chroma:
     driver: local
   redis_data:
     driver: local
   pgadmin_data:
     driver: local
+  frontend_node_modules:
+    driver: local
+  frontend_next:
+    driver: local
 
+# ===========================
+# NETWORKS
+# ===========================
 networks:
-  default:
-    name: nationmind_network
+  nationmind_network:
+    driver: bridge

@@ -1,0 +1,24 @@
+# Frontend Dockerfile (Development)
+# Simple development setup sin multi-stage build
+
+FROM node:20-alpine
+
+WORKDIR /app
+
+# Instalar dependencias globales necesarias
+RUN npm install -g npm@latest
+
+# Copiar package files
+COPY package.json package-lock.json* ./
+
+# Instalar dependencias
+RUN npm ci --legacy-peer-deps
+
+# Copiar código fuente
+COPY . .
+
+# Exponer puerto
+EXPOSE 3000
+
+# Comando para desarrollo (se puede sobrescribir desde docker-compose)
+CMD ["npm", "run", "dev"]
