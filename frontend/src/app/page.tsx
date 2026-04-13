@@ -1,10 +1,11 @@
 // Pagina de inicio - Selección de nación
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { getAvailableNations, initializeGame, healthCheck } from '@/lib/api';
 import type { AvailableNation } from '@/types';
+import ToastNotification, { useToast } from '@/components/ToastNotification';
 
 export default function Home() {
   const router = useRouter();
@@ -13,6 +14,8 @@ export default function Home() {
   const [isInitializing, setIsInitializing] = useState(false);
   const [backendStatus, setBackendStatus] = useState<'checking' | 'ok' | 'error'>('checking');
   const [error, setError] = useState<string | null>(null);
+  const { toasts, showToast, removeToast } = useToast();
+  const backendStatusToastShown = useRef(false);
 
   // Mapeo de países a códigos, regiones y stats simulados (solo naciones disponibles en el backend)
   const countryData: Record<string, { code: string; region: string; population: string; gdp: string }> = {
@@ -32,9 +35,17 @@ export default function Home() {
       setBackendStatus('ok');
       const nationsData = await getAvailableNations();
       setNations(nationsData.available_nations);
+      if (!backendStatusToastShown.current) {
+        showToast('success', 'Backend conectado', 'Sistema listo para iniciar la partida', 3500);
+        backendStatusToastShown.current = true;
+      }
     } catch (error) {
       setBackendStatus('error');
       setError('No se pudo conectar con el backend. Asegúrate de que esté corriendo en http://localhost:8000');
+      if (!backendStatusToastShown.current) {
+        showToast('error', 'Backend no disponible', 'Revisa que la API esté activa antes de comenzar', 4500);
+        backendStatusToastShown.current = true;
+      }
     }
   };
 
@@ -76,7 +87,7 @@ export default function Home() {
   };
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-slate-950 py-12">
+    <div className="relative min-h-screen overflow-hidden bg-slate-950 py-8">
       <div
         className="absolute inset-0"
         style={{
@@ -85,43 +96,39 @@ export default function Home() {
         }}
       />
 
+      <ToastNotification toasts={toasts} onRemove={removeToast} />
+
       <div className="relative container mx-auto px-4">
         {/* Hero Section */}
-        <div className="text-center mb-12 rounded-3xl border border-slate-800/80 bg-slate-900/55 px-6 py-10 shadow-2xl shadow-black/20 backdrop-blur-sm">
-          <div className="inline-block mb-6">
-            <span className="rounded-full border border-slate-700 bg-slate-950/80 px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-slate-300">
+        <div className="text-center mb-8 rounded-3xl border border-slate-800/80 bg-slate-900/55 px-6 py-8 shadow-2xl shadow-black/20 backdrop-blur-sm">
+          <div className="inline-block mb-5">
+            <span className="rounded-full border border-slate-700 bg-slate-950/80 px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-300">
               ⚙️ Simulador de Estrategia Global
             </span>
           </div>
-          <h1 className="mb-4 bg-linear-to-r from-white via-purple-200 to-sky-200 bg-clip-text text-5xl font-bold text-transparent md:text-7xl">
+          <h1 className="mb-3 bg-linear-to-r from-white via-purple-200 to-sky-200 bg-clip-text text-4xl font-bold text-transparent md:text-6xl">
             Gobierna el Mundo
           </h1>
-          <p className="mb-2 text-xl text-slate-200">Selecciona una nación y lidera tu país hacia la gloria en un mundo simulado</p>
-          <p className="text-base text-slate-400">Gestiona diplomacia, economía, ejército y tecnología mientras agentes de IA controlan el resto del mundo</p>
-          
-          {/* Backend Status */}
-          <div className="mt-6 inline-block">
-            {backendStatus === 'checking' && (
-              <div className="rounded-xl border border-yellow-500/50 bg-yellow-900/20 px-4 py-2 text-yellow-200">
-                ⏳ Conectando con el backend...
-              </div>
-            )}
-            {backendStatus === 'ok' && (
-              <div className="rounded-xl border border-green-500/50 bg-green-900/20 px-4 py-2 text-green-200">
-                ✅ Backend conectado correctamente
-              </div>
-            )}
-            {backendStatus === 'error' && (
-              <div className="rounded-xl border border-red-500/50 bg-red-900/20 px-4 py-2 text-red-200">
-                ❌ Error de conexión con el backend
-              </div>
-            )}
+          <p className="mb-2 text-lg text-slate-200 md:text-xl">Selecciona una nación y lidera tu país hacia la gloria en un mundo simulado</p>
+          <p className="mx-auto max-w-3xl text-sm text-slate-400 md:text-base">
+            Gestiona diplomacia, economía, ejército y tecnología mientras agentes de IA controlan el resto del mundo
+          </p>
+          <div className="mt-5 flex flex-wrap items-center justify-center gap-2">
+            <span className="rounded-full border border-purple-500/20 bg-purple-500/10 px-3 py-1 text-xs text-purple-200">
+              8 naciones
+            </span>
+            <span className="rounded-full border border-sky-500/20 bg-sky-500/10 px-3 py-1 text-xs text-sky-200">
+              IA multiagente
+            </span>
+            <span className="rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3 py-1 text-xs text-emerald-200">
+              RAG + memoria
+            </span>
           </div>
         </div>
 
         {/* Error Message */}
         {error && (
-          <div className="mx-auto mb-8 max-w-4xl rounded-xl border-2 border-red-500/70 bg-red-900/20 p-4 backdrop-blur-sm">
+          <div className="mx-auto mb-6 max-w-4xl rounded-xl border-2 border-red-500/70 bg-red-900/20 p-4 backdrop-blur-sm">
             <p className="text-red-200 text-center font-bold">{error}</p>
           </div>
         )}
@@ -129,7 +136,7 @@ export default function Home() {
         {/* Nations Grid */}
         {backendStatus === 'ok' && nations.length > 0 && (
           <>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+            <div className="grid grid-cols-1 gap-4 pb-8 md:grid-cols-2 xl:grid-cols-4">
               {nations.map((nation) => {
                 const countryInfo = countryData[nation.name.toLowerCase()] || { 
                   code: nation.name.substring(0, 2).toUpperCase(), 
@@ -144,7 +151,7 @@ export default function Home() {
                     key={nation.name}
                     onClick={() => setSelectedNation(nation.name.toLowerCase())}
                     className={`
-                      relative rounded-2xl border-2 bg-slate-900/60 p-6 backdrop-blur-sm cursor-pointer
+                      relative cursor-pointer rounded-2xl border-2 bg-slate-900/60 p-4 backdrop-blur-sm
                       transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-black/30
                       ${isSelected 
                         ? 'border-purple-400 shadow-lg shadow-purple-500/25 bg-slate-800/75' 
@@ -159,52 +166,52 @@ export default function Home() {
                     )}
 
                     {/* Country Code */}
-                    <div className="mb-2 text-5xl font-bold text-slate-200">
+                    <div className="mb-1 text-4xl font-bold text-slate-200 xl:text-[2.5rem]">
                       {countryInfo.code}
                     </div>
 
                     {/* Country Name */}
-                    <h3 className="text-2xl font-bold text-white mb-1">
+                    <h3 className="mb-1 text-lg font-bold text-white xl:text-xl">
                       {nation.name}
                     </h3>
 
                     {/* Region */}
-                    <p className="text-sm text-slate-500 mb-6">
+                    <p className="mb-4 text-xs text-slate-500 xl:text-sm">
                       {countryInfo.region}
                     </p>
 
                     {/* Stats */}
-                    <div className="space-y-3 mb-6">
-                      <div className="flex items-center justify-between text-sm">
+                    <div className="mb-4 space-y-2">
+                      <div className="flex items-center justify-between text-xs xl:text-sm">
                         <div className="flex items-center gap-2 text-slate-400">
-                          <span className="text-base">👥</span>
+                          <span className="text-sm">👥</span>
                           <span>Población</span>
                         </div>
-                        <span className="text-white font-semibold">{countryInfo.population}</span>
+                        <span className="font-semibold text-white">{countryInfo.population}</span>
                       </div>
                       
-                      <div className="flex items-center justify-between text-sm">
+                      <div className="flex items-center justify-between text-xs xl:text-sm">
                         <div className="flex items-center gap-2 text-slate-400">
-                          <span className="text-base">🏛️</span>
+                          <span className="text-sm">🏛️</span>
                           <span>PIB</span>
                         </div>
-                        <span className="text-white font-semibold">{countryInfo.gdp}</span>
+                        <span className="font-semibold text-white">{countryInfo.gdp}</span>
                       </div>
                       
-                      <div className="flex items-center justify-between text-sm">
+                      <div className="flex items-center justify-between text-xs xl:text-sm">
                         <div className="flex items-center gap-2 text-slate-400">
-                          <span className="text-base">🛡️</span>
+                          <span className="text-sm">🛡️</span>
                           <span>Militar</span>
                         </div>
-                        <span className="text-white font-semibold">{nation.military_power}/100</span>
+                        <span className="font-semibold text-white">{nation.military_power}/100</span>
                       </div>
                       
-                      <div className="flex items-center justify-between text-sm">
+                      <div className="flex items-center justify-between text-xs xl:text-sm">
                         <div className="flex items-center gap-2 text-slate-400">
-                          <span className="text-base">💡</span>
+                          <span className="text-sm">💡</span>
                           <span>Tecnología</span>
                         </div>
-                        <span className="text-white font-semibold">{nation.diplomatic_power}/100</span>
+                        <span className="font-semibold text-white">{nation.diplomatic_power}/100</span>
                       </div>
                     </div>
 
@@ -215,7 +222,7 @@ export default function Home() {
                         setSelectedNation(nation.name.toLowerCase());
                       }}
                       className={`
-                        w-full rounded-lg py-3 font-semibold transition-all duration-300
+                        w-full rounded-lg py-2.5 text-sm font-semibold transition-all duration-300 xl:text-base
                         ${isSelected 
                           ? 'bg-purple-600 text-white shadow-lg shadow-purple-500/50' 
                           : 'bg-slate-700 text-slate-300 hover:bg-slate-600 hover:text-white'}
@@ -234,8 +241,8 @@ export default function Home() {
                 onClick={handleInitializeGame}
                 disabled={isInitializing || !selectedNation}
                 className={`
-                  bg-linear-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white text-xl font-bold
-                  px-16 py-4 rounded-xl transition-all duration-300
+                  bg-linear-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white text-lg font-bold
+                  px-12 py-3.5 rounded-xl transition-all duration-300
                   shadow-lg shadow-purple-500/30
                   ${isInitializing || !selectedNation
                     ? 'opacity-50 cursor-not-allowed'
@@ -253,7 +260,7 @@ export default function Home() {
                 )}
               </button>
               {selectedNation && !isInitializing && (
-                <p className="text-slate-400 mt-4">
+                <p className="mt-3 text-sm text-slate-400">
                   Liderarás: <span className="font-bold text-white">{selectedNation.charAt(0).toUpperCase() + selectedNation.slice(1)}</span>
                 </p>
               )}
