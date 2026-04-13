@@ -76,35 +76,43 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-900 py-12">
-      <div className="container mx-auto px-4">
+    <div className="relative min-h-screen overflow-hidden bg-slate-950 py-12">
+      <div
+        className="absolute inset-0"
+        style={{
+          background:
+            'radial-gradient(circle at 8% 0%, rgba(168, 85, 247, 0.2), transparent 30%), radial-gradient(circle at 88% 12%, rgba(56, 189, 248, 0.14), transparent 28%), linear-gradient(to bottom, rgba(15, 23, 42, 1), rgba(2, 6, 23, 1))',
+        }}
+      />
+
+      <div className="relative container mx-auto px-4">
         {/* Hero Section */}
-        <div className="text-center mb-12">
+        <div className="text-center mb-12 rounded-3xl border border-slate-800/80 bg-slate-900/55 px-6 py-10 shadow-2xl shadow-black/20 backdrop-blur-sm">
           <div className="inline-block mb-6">
-            <span className="bg-slate-800 text-slate-300 px-4 py-2 rounded-lg text-sm border border-slate-700">
+            <span className="rounded-full border border-slate-700 bg-slate-950/80 px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-slate-300">
               ⚙️ Simulador de Estrategia Global
             </span>
           </div>
-          <h1 className="text-7xl font-bold mb-4 text-white">
+          <h1 className="mb-4 bg-linear-to-r from-white via-purple-200 to-sky-200 bg-clip-text text-5xl font-bold text-transparent md:text-7xl">
             Gobierna el Mundo
           </h1>
-          <p className="text-xl text-slate-300 mb-2">Selecciona una nación y lidera tu país hacia la gloria en un mundo simulado</p>
+          <p className="mb-2 text-xl text-slate-200">Selecciona una nación y lidera tu país hacia la gloria en un mundo simulado</p>
           <p className="text-base text-slate-400">Gestiona diplomacia, economía, ejército y tecnología mientras agentes de IA controlan el resto del mundo</p>
           
           {/* Backend Status */}
           <div className="mt-6 inline-block">
             {backendStatus === 'checking' && (
-              <div className="bg-yellow-900/30 border border-yellow-500 text-yellow-200 px-4 py-2 rounded-lg">
+              <div className="rounded-xl border border-yellow-500/50 bg-yellow-900/20 px-4 py-2 text-yellow-200">
                 ⏳ Conectando con el backend...
               </div>
             )}
             {backendStatus === 'ok' && (
-              <div className="bg-green-900/30 border border-green-500 text-green-200 px-4 py-2 rounded-lg">
+              <div className="rounded-xl border border-green-500/50 bg-green-900/20 px-4 py-2 text-green-200">
                 ✅ Backend conectado correctamente
               </div>
             )}
             {backendStatus === 'error' && (
-              <div className="bg-red-900/30 border border-red-500 text-red-200 px-4 py-2 rounded-lg">
+              <div className="rounded-xl border border-red-500/50 bg-red-900/20 px-4 py-2 text-red-200">
                 ❌ Error de conexión con el backend
               </div>
             )}
@@ -113,7 +121,7 @@ export default function Home() {
 
         {/* Error Message */}
         {error && (
-          <div className="max-w-4xl mx-auto mb-8 bg-red-900/30 border-2 border-red-500 rounded-xl p-4">
+          <div className="mx-auto mb-8 max-w-4xl rounded-xl border-2 border-red-500/70 bg-red-900/20 p-4 backdrop-blur-sm">
             <p className="text-red-200 text-center font-bold">{error}</p>
           </div>
         )}
@@ -136,22 +144,22 @@ export default function Home() {
                     key={nation.name}
                     onClick={() => setSelectedNation(nation.name.toLowerCase())}
                     className={`
-                      relative bg-slate-800/50 backdrop-blur-sm rounded-2xl p-6 border-2 cursor-pointer
-                      transition-all duration-300 hover:scale-105 hover:shadow-2xl
+                      relative rounded-2xl border-2 bg-slate-900/60 p-6 backdrop-blur-sm cursor-pointer
+                      transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-black/30
                       ${isSelected 
-                        ? 'border-blue-500 shadow-lg shadow-blue-500/30 bg-slate-700/70' 
-                        : 'border-slate-700/50 hover:border-slate-600'}
+                        ? 'border-purple-400 shadow-lg shadow-purple-500/25 bg-slate-800/75' 
+                        : 'border-slate-700/60 hover:border-slate-500'}
                     `}
                   >
                     {/* Selected Indicator */}
                     {isSelected && (
-                      <div className="absolute -top-2 -right-2 w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center shadow-lg">
+                      <div className="absolute -top-2 -right-2 flex h-8 w-8 items-center justify-center rounded-full bg-purple-500 shadow-lg shadow-purple-500/40">
                         <span className="text-white text-base">✓</span>
                       </div>
                     )}
 
                     {/* Country Code */}
-                    <div className="text-5xl font-bold text-slate-300 mb-2">
+                    <div className="mb-2 text-5xl font-bold text-slate-200">
                       {countryInfo.code}
                     </div>
 
@@ -207,9 +215,9 @@ export default function Home() {
                         setSelectedNation(nation.name.toLowerCase());
                       }}
                       className={`
-                        w-full py-3 rounded-lg font-semibold transition-all duration-300
+                        w-full rounded-lg py-3 font-semibold transition-all duration-300
                         ${isSelected 
-                          ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/50' 
+                          ? 'bg-purple-600 text-white shadow-lg shadow-purple-500/50' 
                           : 'bg-slate-700 text-slate-300 hover:bg-slate-600 hover:text-white'}
                       `}
                     >
@@ -226,12 +234,12 @@ export default function Home() {
                 onClick={handleInitializeGame}
                 disabled={isInitializing || !selectedNation}
                 className={`
-                  bg-blue-600 hover:bg-blue-700 text-white text-xl font-bold
+                  bg-linear-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white text-xl font-bold
                   px-16 py-4 rounded-xl transition-all duration-300
-                  shadow-lg shadow-blue-500/30
+                  shadow-lg shadow-purple-500/30
                   ${isInitializing || !selectedNation
                     ? 'opacity-50 cursor-not-allowed'
-                    : 'hover:scale-105 hover:shadow-xl hover:shadow-blue-500/50'
+                    : 'hover:scale-105 hover:shadow-xl hover:shadow-purple-500/40'
                   }
                 `}
               >

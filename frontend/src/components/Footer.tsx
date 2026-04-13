@@ -19,7 +19,9 @@ export default function Footer() {
     switch (activeModal) {
       case 'how-to-play':
         return {
+          icon: '🎮',
           title: 'Cómo Jugar',
+          subtitle: 'Los fundamentos para arrancar una partida sólida.',
           body: [
             'Selecciona una nación al inicio y gobierna tu país turno a turno.',
             'Gestiona diplomacia, economía y ejército mientras las otras naciones actúan por IA.',
@@ -28,7 +30,9 @@ export default function Footer() {
         };
       case 'strategy':
         return {
+          icon: '🧠',
           title: 'Estrategias',
+          subtitle: 'Ideas prácticas para jugar con más ventaja.',
           body: [
             'No gastes todo al principio: reserva recursos para responder a guerras y alianzas.',
             'Si tu economía crece, tus decisiones futuras tienen mucho más margen.',
@@ -37,7 +41,9 @@ export default function Footer() {
         };
       case 'nations':
         return {
+          icon: '🌍',
           title: 'Guía de Naciones',
+          subtitle: 'Cómo leer las personalidades y fortalezas del tablero.',
           body: [
             'Cada nación tiene personalidad, poder militar, económico y diplomático distintos.',
             'Las personalidades influyen en su estilo: agresivas, diplomáticas, defensivas o expansionistas.',
@@ -46,7 +52,9 @@ export default function Footer() {
         };
       case 'updates':
         return {
+          icon: '🚀',
           title: 'Actualizaciones',
+          subtitle: 'Sección en construcción para roadmap y changelog.',
           body: [
             'Pronto tendrás aquí un changelog visual con las mejoras más recientes.',
             'También se pueden mostrar notas de balance, nuevas naciones y cambios en IA.',
@@ -54,7 +62,9 @@ export default function Footer() {
         };
       case 'feedback':
         return {
+          icon: '📝',
           title: 'Feedback',
+          subtitle: 'Cuéntanos qué mejorarías en la experiencia.',
           body: [
             'De momento este formulario es decorativo: todavía no envía datos a ningún servicio.',
             'Úsalo para validar el diseño antes de conectar almacenamiento o email.',
@@ -305,24 +315,35 @@ export default function Footer() {
       </div>
 
       {activeModal && modalContent && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-sm px-4">
-          <div className="w-full max-w-2xl rounded-2xl border border-slate-700 bg-slate-900 shadow-2xl shadow-black/40">
-            <div className="flex items-center justify-between border-b border-slate-800 px-6 py-4">
-              <h3 className="text-xl font-bold text-white">{modalContent.title}</h3>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/85 backdrop-blur-md px-4">
+          <div className="relative w-full max-w-2xl overflow-hidden rounded-3xl border border-slate-700/90 bg-slate-900 shadow-2xl shadow-black/50">
+            <div className="absolute inset-x-0 top-0 h-px bg-linear-to-r from-transparent via-purple-400/70 to-transparent" />
+            <div className="absolute -top-16 right-0 h-44 w-44 rounded-full bg-purple-500/10 blur-3xl" />
+
+            <div className="relative flex items-start justify-between gap-4 border-b border-slate-800/90 px-6 py-5">
+              <div className="flex items-start gap-3">
+                <div className="mt-0.5 rounded-xl border border-slate-700 bg-slate-950/80 px-2.5 py-1.5 text-sm text-slate-200">
+                  {modalContent.icon}
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold text-white">{modalContent.title}</h3>
+                  <p className="mt-1 text-sm text-slate-400">{modalContent.subtitle}</p>
+                </div>
+              </div>
               <button
                 type="button"
                 onClick={closeModal}
-                className="rounded-lg bg-slate-800 px-3 py-1 text-slate-300 hover:bg-slate-700 hover:text-white"
+                className="rounded-xl border border-slate-700 bg-slate-800/80 px-3 py-1.5 text-slate-200 hover:border-slate-500 hover:bg-slate-700"
                 aria-label="Cerrar modal"
               >
                 Cerrar
               </button>
             </div>
 
-            <div className="px-6 py-6">
+            <div className="relative px-6 py-6">
               {activeModal === 'feedback' ? (
-                <form onSubmit={handleFeedbackSubmit} className="space-y-4">
-                  <p className="text-sm text-slate-400">
+                <form onSubmit={handleFeedbackSubmit} className="space-y-5">
+                  <p className="rounded-2xl border border-slate-700/80 bg-slate-950/70 px-4 py-3 text-sm text-slate-300">
                     Este formulario es solo visual por ahora. Sirve para dejar listo el diseño antes de conectar el backend.
                   </p>
                   {feedbackSubmitted && (
@@ -337,7 +358,7 @@ export default function Footer() {
                         name="name"
                         value={feedbackForm.name}
                         onChange={handleFeedbackChange}
-                        className="w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none transition focus:border-purple-500"
+                        className="w-full rounded-xl border border-slate-700 bg-slate-950/90 px-4 py-3 text-white outline-none transition focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20"
                         placeholder="Tu nombre"
                       />
                     </label>
@@ -348,7 +369,7 @@ export default function Footer() {
                         type="email"
                         value={feedbackForm.email}
                         onChange={handleFeedbackChange}
-                        className="w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none transition focus:border-purple-500"
+                        className="w-full rounded-xl border border-slate-700 bg-slate-950/90 px-4 py-3 text-white outline-none transition focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20"
                         placeholder="tu@email.com"
                       />
                     </label>
@@ -359,7 +380,7 @@ export default function Footer() {
                       name="topic"
                       value={feedbackForm.topic}
                       onChange={handleFeedbackChange}
-                      className="w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none transition focus:border-purple-500"
+                      className="w-full rounded-xl border border-slate-700 bg-slate-950/90 px-4 py-3 text-white outline-none transition focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20"
                     >
                       <option>General</option>
                       <option>UI / UX</option>
@@ -374,7 +395,7 @@ export default function Footer() {
                       rows={5}
                       value={feedbackForm.message}
                       onChange={handleFeedbackChange}
-                      className="w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none transition focus:border-purple-500"
+                      className="w-full rounded-xl border border-slate-700 bg-slate-950/90 px-4 py-3 text-white outline-none transition focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20"
                       placeholder="Cuéntanos qué mejorarías..."
                     />
                   </label>
@@ -395,11 +416,15 @@ export default function Footer() {
                   </div>
                 </form>
               ) : (
-                <div className="space-y-4 text-slate-300">
-                  {modalContent.body.map((item) => (
-                    <p key={item} className="leading-7">
-                      {item}
-                    </p>
+                <div className="space-y-3">
+                  {modalContent.body.map((item, index) => (
+                    <div
+                      key={item}
+                      className="rounded-2xl border border-slate-700/70 bg-slate-950/60 px-4 py-3 text-slate-200"
+                    >
+                      <p className="text-xs uppercase tracking-[0.18em] text-slate-500">Punto {index + 1}</p>
+                      <p className="mt-1 leading-7">{item}</p>
+                    </div>
                   ))}
                 </div>
               )}
