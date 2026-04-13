@@ -5,6 +5,7 @@ Rutas: /api/game/*
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.orm import Session
 from typing import Optional, List, Dict, Any
+import logging
 
 from ..models.database import get_db
 from ..config.security import require_api_key
@@ -13,6 +14,7 @@ from ..services.nation_service import NationService
 from ..schemas.game_schema import ActionRequest, GameStateResponse, MessageResponse
 
 router = APIRouter(prefix="/api/game", tags=["Game"])
+logger = logging.getLogger(__name__)
 
 
 @router.get("/nations")
@@ -45,13 +47,13 @@ def initialize_game(
     Crea las 8 naciones, el primer turno y las relaciones base.
     La nación seleccionada será controlada por el jugador, las demás por IA.
     """
-    print(f"\n🎮 INICIALIZANDO JUEGO CON NACIÓN: {player_nation}")
+    logger.info("Inicializando juego con nación %s", player_nation)
     
     # Verificar que no haya ya un juego iniciado
     existing_nations = NationService.get_all(db, limit=1)
     if existing_nations:
         if force_reset:
-            print(f"⚠️  Juego existente detectado. Eliminando...")
+            logger.warning("Juego existente detectado. Eliminando por force_reset")
             # Eliminar todas las naciones (por CASCADE se eliminarán eventos, relaciones, etc.)
             from sqlalchemy import text
             db.execute(text("DELETE FROM battles"))
@@ -60,35 +62,35 @@ def initialize_game(
             db.execute(text("DELETE FROM nations"))
             db.execute(text("DELETE FROM turns"))
             db.commit()
-            print("✅ Juego anterior eliminado")
+            logger.info("Juego anterior eliminado")
         else:
-            print(f"❌ ERROR: Ya existe un juego con {len(NationService.get_all(db))} naciones")
+            logger.warning("Intento de inicialización con juego activo")
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Ya existe un juego iniciado. Usa force_reset=true para eliminarlo automáticamente o ejecuta reset_game.py"
             )
     
-    print("✅ No hay juego previo, iniciando...")
+    logger.info("No hay juego previo, iniciando")
     
     try:
         result = GameService.initialize_game(db, player_nation_code=player_nation)
-        print(f"✅ Juego inicializado exitosamente. Turno: {result.get('turn_number', 'N/A')}")
+        logger.info("Juego inicializado exitosamente. Turno: %s", result.get("turn_number", "N/A"))
         return MessageResponse(
             message=result["message"],
             success=True,
             data=result
         )
     except ValueError as e:
-        print(f"❌ ERROR ValueError: {str(e)}")
+        logger.warning("Error de validación al inicializar juego: %s", str(e))
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=str(e)
         )
     except Exception as e:
-        print(f"❌ ERROR inesperado: {type(e).__name__}: {str(e)}")
+        logger.exception("Error inesperado al inicializar juego")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Error al inicializar juego: {str(e)}"
+            detail="Error al inicializar juego"
         )
 
 

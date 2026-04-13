@@ -5,6 +5,7 @@ Rutas: /api/agents/*
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from typing import Dict, Any
+import logging
 
 from ..models.database import get_db
 from ..config.security import require_api_key
@@ -12,6 +13,7 @@ from ..services.agent_service import get_agent_service
 from ..services.turn_service import TurnService
 
 router = APIRouter(prefix="/api/agents", tags=["AI Agents"])
+logger = logging.getLogger(__name__)
 
 
 @router.post("/process-turn")
@@ -42,7 +44,7 @@ def process_ai_turn(
                 detail="No hay turno activo. Inicializa el juego primero."
             )
         
-        print(f"\n⚡ Procesando turno {current_turn.turn_number}...")
+        logger.info("Procesando turno IA %s", current_turn.turn_number)
         
         # Obtener servicio de agentes
         agent_service = get_agent_service()
@@ -56,7 +58,7 @@ def process_ai_turn(
         # Contar éxitos
         successes = sum(1 for r in results if r.get("success", False))
         
-        print(f"✅ Turno procesado. Nuevo turno: {new_turn.turn_number if new_turn else 'ERROR'}")
+        logger.info("Turno IA procesado. Nuevo turno: %s", new_turn.turn_number if new_turn else "ERROR")
         
         return {
             "message": "Turno procesado exitosamente",
@@ -69,12 +71,10 @@ def process_ai_turn(
         }
         
     except Exception as e:
-        import traceback
-        print(f"❌ ERROR en process_ai_turn: {str(e)}")
-        print(traceback.format_exc())
+        logger.exception("Error en process_ai_turn")
         raise HTTPException(
             status_code=500,
-            detail=f"Error procesando turno de IA: {str(e)}"
+            detail="Error procesando turno de IA"
         )
 
 

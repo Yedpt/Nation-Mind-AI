@@ -91,7 +91,7 @@ services:
         condition: service_started
     networks:
       - nationmind_network
-    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000
 
   # ===========================
   # FRONTEND
@@ -109,6 +109,8 @@ services:
     environment:
       NODE_ENV: development
       NEXT_PUBLIC_API_URL: http://localhost:8000
+      BACKEND_INTERNAL_URL: http://backend:8000
+      BACKEND_API_KEY: ${API_KEY}
       NEXT_TELEMETRY_DISABLED: 1
     # NO montar código en desarrollo - usar el de la imagen
     # volumes:

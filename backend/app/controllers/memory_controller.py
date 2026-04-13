@@ -5,11 +5,13 @@ Rutas: /api/memory/*
 from fastapi import APIRouter, HTTPException, status, Depends
 from typing import Optional
 from pydantic import BaseModel
+import logging
 
 from ..services.rag_service import get_rag_service
 from ..config.security import require_api_key
 
 router = APIRouter(prefix="/api/memory", tags=["Memory (RAG)"])
+logger = logging.getLogger(__name__)
 
 
 # ==================== SCHEMAS ====================
@@ -196,9 +198,10 @@ def reindex_events_from_db(_: None = Depends(require_api_key)):
         }
         
     except Exception as e:
+        logger.exception("Error al reindexar memoria desde DB")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Error al reindexar: {str(e)}"
+            detail="Error al reindexar memoria"
         )
     finally:
         db.close()

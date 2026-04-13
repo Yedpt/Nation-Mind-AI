@@ -31,6 +31,7 @@ from .controllers import (
 
 # Importar modelos para crear tablas
 from .models import create_tables, Base, engine
+from .config.settings import settings
 
 
 @asynccontextmanager
@@ -39,6 +40,9 @@ async def lifespan(app: FastAPI):
     Eventos del ciclo de vida de la aplicación
     Se ejecuta al iniciar y al cerrar el servidor
     """
+    if settings.ENVIRONMENT.lower() == "production" and not settings.API_KEY:
+        raise RuntimeError("API_KEY is required in production")
+
     # Startup: Crear tablas si no existen
     print("🚀 Iniciando Nation-Mind AI Backend...")
     print("📊 Creando tablas de base de datos...")
@@ -62,6 +66,9 @@ app = FastAPI(
 # Rate limiting simple en memoria (solo para endpoints sensibles)
 RATE_LIMIT_PATHS = {
     "/api/agents/process-turn",
+    "/api/memory/clear",
+    "/api/memory/reindex",
+    "/api/game/initialize",
 }
 RATE_LIMIT_STORE: Dict[str, Deque[float]] = {}
 
@@ -90,12 +97,10 @@ def _check_rate_limit(client_key: str) -> Tuple[bool, int]:
     return False, 0
 
 # CORS para permitir peticiones desde el frontend
+allowed_origins = [o.strip() for o in settings.ALLOWED_ORIGINS.split(",") if o.strip()]
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:3000",  # Next.js dev
-        "http://localhost:3001",  # Alternativo
-    ],
+    allow_origins=allowed_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -112,7 +117,8 @@ async def log_requests(request: Request, call_next):
 
     # Rate limiting en endpoints sensibles
     if request.url.path in RATE_LIMIT_PATHS:
-        client_ip = request.headers.get("x-forwarded-for", request.client.host or "unknown")
+        forwarded_for = request.headers.get("x-forwarded-for", "")
+        client_ip = forwarded_for.split(",")[0].strip() if forwarded_for else (request.client.host or "unknown")
         key = f"{client_ip}:{request.url.path}"
         limited, retry_after = _check_rate_limit(key)
         if limited:
@@ -128,6 +134,17 @@ async def log_requests(request: Request, call_next):
             )
     
     response = await call_next(request)
+
+    # Cabeceras de seguridad para API
+    if request.url.path.startswith("/api"):
+        response.headers["X-Content-Type-Options"] = "nosniff"
+        response.headers["X-Frame-Options"] = "DENY"
+        response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+        response.headers["Permissions-Policy"] = "geolocation=(), microphone=(), camera=()"
+        # CSP estricta para respuestas JSON/API
+        response.headers["Content-Security-Policy"] = (
+            "default-src 'none'; frame-ancestors 'none'; base-uri 'none'"
+        )
     
     # Log de la respuesta
     process_time = time.time() - start_time

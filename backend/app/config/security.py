@@ -14,6 +14,11 @@ def require_api_key(x_api_key: str = Header(None)) -> None:
     """
     expected = settings.API_KEY
     if not expected:
+        if settings.ENVIRONMENT.lower() == "production":
+            raise HTTPException(
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                detail="Security configuration error",
+            )
         return
 
     if x_api_key != expected:

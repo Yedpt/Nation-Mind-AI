@@ -1,18 +1,126 @@
 'use client';
 
+import { useMemo, useState } from 'react';
+
+type FooterModalKey = 'how-to-play' | 'strategy' | 'nations' | 'updates' | 'feedback' | null;
+
 export default function Footer() {
   const currentYear = new Date().getFullYear();
+  const [activeModal, setActiveModal] = useState<FooterModalKey>(null);
+  const [feedbackSubmitted, setFeedbackSubmitted] = useState(false);
+  const [feedbackForm, setFeedbackForm] = useState({
+    name: '',
+    email: '',
+    topic: 'General',
+    message: '',
+  });
+
+  const modalContent = useMemo(() => {
+    switch (activeModal) {
+      case 'how-to-play':
+        return {
+          title: 'Cómo Jugar',
+          body: [
+            'Selecciona una nación al inicio y gobierna tu país turno a turno.',
+            'Gestiona diplomacia, economía y ejército mientras las otras naciones actúan por IA.',
+            'Tu objetivo es crecer, sobrevivir y buscar una condición de victoria antes que el resto.',
+          ],
+        };
+      case 'strategy':
+        return {
+          title: 'Estrategias',
+          body: [
+            'No gastes todo al principio: reserva recursos para responder a guerras y alianzas.',
+            'Si tu economía crece, tus decisiones futuras tienen mucho más margen.',
+            'Usa la diplomacia para ganar tiempo y la guerra solo cuando tengas ventaja real.',
+          ],
+        };
+      case 'nations':
+        return {
+          title: 'Guía de Naciones',
+          body: [
+            'Cada nación tiene personalidad, poder militar, económico y diplomático distintos.',
+            'Las personalidades influyen en su estilo: agresivas, diplomáticas, defensivas o expansionistas.',
+            'Explora la ficha de cada nación en la partida para detectar fortalezas y debilidades.',
+          ],
+        };
+      case 'updates':
+        return {
+          title: 'Actualizaciones',
+          body: [
+            'Pronto tendrás aquí un changelog visual con las mejoras más recientes.',
+            'También se pueden mostrar notas de balance, nuevas naciones y cambios en IA.',
+          ],
+        };
+      case 'feedback':
+        return {
+          title: 'Feedback',
+          body: [
+            'De momento este formulario es decorativo: todavía no envía datos a ningún servicio.',
+            'Úsalo para validar el diseño antes de conectar almacenamiento o email.',
+          ],
+        };
+      default:
+        return null;
+    }
+  }, [activeModal]);
+
+  const closeModal = () => setActiveModal(null);
+
+  const handleFeedbackChange = (
+    event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
+  ) => {
+    const { name, value } = event.target;
+    setFeedbackForm((current) => ({ ...current, [name]: value }));
+  };
+
+  const handleFeedbackSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setFeedbackSubmitted(true);
+  };
   
   return (
-    <footer className="bg-slate-900 border-t border-slate-800 mt-auto">
-      <div className="container mx-auto px-4 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
-          {/* GeoPolitik Info */}
+    <footer className="relative mt-auto overflow-hidden border-t border-slate-800 bg-slate-950">
+      <div
+        className="absolute inset-0"
+        style={{
+          background:
+            'radial-gradient(circle at top left, rgba(168, 85, 247, 0.16), transparent 32%), radial-gradient(circle at top right, rgba(59, 130, 246, 0.12), transparent 28%), linear-gradient(to bottom, rgba(15, 23, 42, 0.92), rgba(2, 6, 23, 1))',
+        }}
+      />
+      <div className="absolute inset-x-0 top-0 h-px bg-linear-to-r from-transparent via-purple-500/60 to-transparent" />
+
+      <div className="relative container mx-auto px-4 py-14">
+        <div className="mb-10 flex flex-col gap-4 rounded-3xl border border-slate-800/80 bg-slate-900/60 px-6 py-5 shadow-2xl shadow-black/20 backdrop-blur-sm lg:flex-row lg:items-center lg:justify-between">
           <div>
-            <div className="flex items-center gap-3 mb-4">
-              <div className="bg-slate-800 p-2 rounded-lg">
+            <p className="text-xs font-semibold uppercase tracking-[0.28em] text-purple-300/80">
+              Nation-Mind AI
+            </p>
+            <h3 className="mt-1 text-2xl font-bold text-white">
+              Un simulador geopolítico con IA, memoria y decisiones emergentes.
+            </h3>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <span className="rounded-full border border-slate-700 bg-slate-950/70 px-3 py-1 text-xs font-medium text-slate-300">
+              8 naciones
+            </span>
+            <span className="rounded-full border border-slate-700 bg-slate-950/70 px-3 py-1 text-xs font-medium text-slate-300">
+              Memoria RAG
+            </span>
+            <span className="rounded-full border border-slate-700 bg-slate-950/70 px-3 py-1 text-xs font-medium text-slate-300">
+              Agentes autónomos
+            </span>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1.3fr_1fr_1fr]">
+          {/* GeoPolitik Info */}
+          <div className="rounded-3xl border border-slate-800/70 bg-slate-900/55 p-6 shadow-xl shadow-black/15 backdrop-blur-sm">
+            <div className="flex items-center gap-3 mb-5">
+              <div className="relative rounded-2xl bg-slate-800/90 p-3 ring-1 ring-white/5">
+                <div className="absolute inset-0 rounded-2xl bg-purple-500/10 blur-xl" />
                 <svg
-                  className="w-6 h-6 text-slate-400"
+                  className="relative w-6 h-6 text-slate-300"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -26,86 +134,142 @@ export default function Footer() {
                 </svg>
               </div>
               <div>
-                <h3 className="text-white font-bold text-lg">Nation-Mind AI</h3>
-                <p className="text-purple-400 text-xs">Simulador Geopolítico por Turnos</p>
+                <h3 className="text-xl font-bold text-white">Nation-Mind AI</h3>
+                <p className="text-xs uppercase tracking-[0.18em] text-purple-300/80">Simulador Geopolítico por Turnos</p>
               </div>
             </div>
-            <p className="text-slate-400 text-sm">
+            <p className="max-w-xl text-sm leading-7 text-slate-300">
               Gobierna una nación en un mundo simulado donde agentes de IA controlan el resto del planeta. 
               Toma decisiones estratégicas en diplomacia, economía y defensa.
             </p>
+            <div className="mt-5 flex flex-wrap gap-2">
+              <span className="rounded-full border border-blue-500/20 bg-blue-500/10 px-3 py-1 text-xs text-blue-200">
+                Diplomacia dinámica
+              </span>
+              <span className="rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3 py-1 text-xs text-emerald-200">
+                Economía viva
+              </span>
+              <span className="rounded-full border border-rose-500/20 bg-rose-500/10 px-3 py-1 text-xs text-rose-200">
+                Combate táctico
+              </span>
+            </div>
           </div>
 
           {/* Enlaces Rápidos */}
-          <div>
-            <h3 className="text-white font-bold mb-4">Enlaces Rápidos</h3>
-            <ul className="space-y-2">
+          <div className="rounded-3xl border border-slate-800/70 bg-slate-900/55 p-6 shadow-xl shadow-black/15 backdrop-blur-sm">
+            <h3 className="mb-4 text-lg font-bold text-white">Enlaces Rápidos</h3>
+            <ul className="space-y-2.5">
               <li>
-                <a href="/" className="text-slate-400 hover:text-white text-sm transition-colors">
+                <button
+                  type="button"
+                  onClick={() => setActiveModal('how-to-play')}
+                  className="group flex items-center gap-2 text-sm text-slate-300 transition-colors hover:text-white"
+                >
+                  <span className="h-1.5 w-1.5 rounded-full bg-purple-400/80 transition-transform group-hover:scale-125" />
                   Cómo Jugar
-                </a>
+                </button>
               </li>
               <li>
-                <a href="/" className="text-slate-400 hover:text-white text-sm transition-colors">
+                <button
+                  type="button"
+                  onClick={() => setActiveModal('strategy')}
+                  className="group flex items-center gap-2 text-sm text-slate-300 transition-colors hover:text-white"
+                >
+                  <span className="h-1.5 w-1.5 rounded-full bg-sky-400/80 transition-transform group-hover:scale-125" />
                   Estrategias
-                </a>
+                </button>
               </li>
               <li>
-                <a href="/" className="text-slate-400 hover:text-white text-sm transition-colors">
+                <button
+                  type="button"
+                  onClick={() => setActiveModal('nations')}
+                  className="group flex items-center gap-2 text-sm text-slate-300 transition-colors hover:text-white"
+                >
+                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-400/80 transition-transform group-hover:scale-125" />
                   Guía de Naciones
-                </a>
+                </button>
               </li>
               <li>
-                <a href="/" className="text-slate-400 hover:text-white text-sm transition-colors">
-                  Actualizaciones
-                </a>
+                <button
+                  type="button"
+                  onClick={() => setActiveModal('updates')}
+                  className="group flex items-center gap-2 text-sm text-slate-300 transition-colors hover:text-white"
+                >
+                  <span className="h-1.5 w-1.5 rounded-full bg-amber-300/90 transition-transform group-hover:scale-125" />
+                  Actualizaciones <span className="text-xs text-slate-500">· pronto...</span>
+                </button>
               </li>
             </ul>
           </div>
 
           {/* Comunidad */}
-          <div>
-            <h3 className="text-white font-bold mb-4">Comunidad</h3>
-            <ul className="space-y-2 mb-4">
+          <div className="rounded-3xl border border-slate-800/70 bg-slate-900/55 p-6 shadow-xl shadow-black/15 backdrop-blur-sm">
+            <div className="mb-4 flex items-center justify-between">
+              <h3 className="text-lg font-bold text-white">Comunidad</h3>
+              <span className="rounded-full border border-slate-700 bg-slate-950/70 px-2.5 py-1 text-[11px] uppercase tracking-[0.2em] text-slate-400">
+                Beta
+              </span>
+            </div>
+            <ul className="space-y-2.5 mb-5">
               <li>
-                <a href="https://discord.gg" target="_blank" rel="noopener noreferrer" className="text-slate-400 hover:text-white text-sm transition-colors">
+                <a href="https://discord.gg" target="_blank" rel="noopener noreferrer" className="text-sm text-slate-300 transition-colors hover:text-white">
                   Discord
                 </a>
               </li>
               <li>
-                <a href="/" className="text-slate-400 hover:text-white text-sm transition-colors">
+                <button
+                  type="button"
+                  onClick={() => setActiveModal('nations')}
+                  className="text-sm text-slate-300 transition-colors hover:text-white"
+                >
                   Foro
-                </a>
+                </button>
               </li>
               <li>
-                <a href="/" className="text-slate-400 hover:text-white text-sm transition-colors">
+                <button
+                  type="button"
+                  onClick={() => setActiveModal('how-to-play')}
+                  className="text-sm text-slate-300 transition-colors hover:text-white"
+                >
                   Soporte
-                </a>
+                </button>
               </li>
               <li>
-                <a href="/" className="text-slate-400 hover:text-white text-sm transition-colors">
+                <button
+                  type="button"
+                  onClick={() => setActiveModal('feedback')}
+                  className="text-sm text-slate-300 transition-colors hover:text-white"
+                >
                   Feedback
-                </a>
+                </button>
               </li>
             </ul>
+            <button
+              type="button"
+              onClick={() => setActiveModal('feedback')}
+              className="w-full rounded-2xl border border-purple-500/30 bg-linear-to-r from-purple-500/15 to-blue-500/15 px-4 py-3 text-left text-sm text-white transition hover:border-purple-400/60 hover:from-purple-500/20 hover:to-blue-500/20"
+            >
+              <span className="block font-semibold">Enviar feedback</span>
+              <span className="block text-xs text-slate-300/80">Comparte ideas visuales o mejoras para la experiencia</span>
+            </button>
           </div>
         </div>
 
         {/* Divider */}
-        <div className="border-t border-slate-800 mt-8 pt-6">
-          <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+        <div className="mt-8 border-t border-slate-800/80 pt-6">
+          <div className="flex flex-col items-center justify-between gap-5 md:flex-row">
             {/* Copyright */}
-            <p className="text-slate-500 text-sm">
+            <p className="text-center text-sm text-slate-500 md:text-left">
               © {currentYear} Nation-Mind AI. Todos los derechos reservados.
             </p>
 
             {/* Social Icons */}
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-3">
               <a
                 href="https://twitter.com"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="bg-slate-800 p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-700 transition-all"
+                className="rounded-xl border border-slate-800 bg-slate-900/80 p-2.5 text-slate-400 transition-all hover:border-slate-600 hover:text-white hover:shadow-lg hover:shadow-black/20"
                 aria-label="Twitter"
               >
                 <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
@@ -113,10 +277,10 @@ export default function Footer() {
                 </svg>
               </a>
               <a
-                href="https://github.com"
+                href="https://github.com/Yedpt/Nation-Mind-AI"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="bg-slate-800 p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-700 transition-all"
+                className="rounded-xl border border-slate-800 bg-slate-900/80 p-2.5 text-slate-400 transition-all hover:border-slate-600 hover:text-white hover:shadow-lg hover:shadow-black/20"
                 aria-label="GitHub"
               >
                 <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
@@ -125,7 +289,7 @@ export default function Footer() {
               </a>
               <a
                 href="mailto:contact@nationmind.ai"
-                className="bg-slate-800 p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-700 transition-all"
+                className="rounded-xl border border-slate-800 bg-slate-900/80 p-2.5 text-slate-400 transition-all hover:border-slate-600 hover:text-white hover:shadow-lg hover:shadow-black/20"
                 aria-label="Email"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -134,11 +298,115 @@ export default function Footer() {
               </a>
             </div>
           </div>
-          <p className="text-slate-600 text-xs text-center mt-4">
+          <p className="mt-4 text-center text-xs text-slate-500">
             Hecho con ❤️ para jugadores de estrategia
           </p>
         </div>
       </div>
+
+      {activeModal && modalContent && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-sm px-4">
+          <div className="w-full max-w-2xl rounded-2xl border border-slate-700 bg-slate-900 shadow-2xl shadow-black/40">
+            <div className="flex items-center justify-between border-b border-slate-800 px-6 py-4">
+              <h3 className="text-xl font-bold text-white">{modalContent.title}</h3>
+              <button
+                type="button"
+                onClick={closeModal}
+                className="rounded-lg bg-slate-800 px-3 py-1 text-slate-300 hover:bg-slate-700 hover:text-white"
+                aria-label="Cerrar modal"
+              >
+                Cerrar
+              </button>
+            </div>
+
+            <div className="px-6 py-6">
+              {activeModal === 'feedback' ? (
+                <form onSubmit={handleFeedbackSubmit} className="space-y-4">
+                  <p className="text-sm text-slate-400">
+                    Este formulario es solo visual por ahora. Sirve para dejar listo el diseño antes de conectar el backend.
+                  </p>
+                  {feedbackSubmitted && (
+                    <div className="rounded-xl border border-emerald-500/40 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-200">
+                      Feedback preparado. Cuando conectemos el backend, aquí se enviará de verdad.
+                    </div>
+                  )}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <label className="space-y-2">
+                      <span className="text-sm text-slate-300">Nombre</span>
+                      <input
+                        name="name"
+                        value={feedbackForm.name}
+                        onChange={handleFeedbackChange}
+                        className="w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none transition focus:border-purple-500"
+                        placeholder="Tu nombre"
+                      />
+                    </label>
+                    <label className="space-y-2">
+                      <span className="text-sm text-slate-300">Email</span>
+                      <input
+                        name="email"
+                        type="email"
+                        value={feedbackForm.email}
+                        onChange={handleFeedbackChange}
+                        className="w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none transition focus:border-purple-500"
+                        placeholder="tu@email.com"
+                      />
+                    </label>
+                  </div>
+                  <label className="block space-y-2">
+                    <span className="text-sm text-slate-300">Tema</span>
+                    <select
+                      name="topic"
+                      value={feedbackForm.topic}
+                      onChange={handleFeedbackChange}
+                      className="w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none transition focus:border-purple-500"
+                    >
+                      <option>General</option>
+                      <option>UI / UX</option>
+                      <option>Balance</option>
+                      <option>Bug visual</option>
+                    </select>
+                  </label>
+                  <label className="block space-y-2">
+                    <span className="text-sm text-slate-300">Mensaje</span>
+                    <textarea
+                      name="message"
+                      rows={5}
+                      value={feedbackForm.message}
+                      onChange={handleFeedbackChange}
+                      className="w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none transition focus:border-purple-500"
+                      placeholder="Cuéntanos qué mejorarías..."
+                    />
+                  </label>
+                  <div className="flex justify-end gap-3">
+                    <button
+                      type="button"
+                      onClick={closeModal}
+                      className="rounded-xl border border-slate-700 px-4 py-2 text-slate-300 hover:border-slate-500 hover:text-white"
+                    >
+                      Cancelar
+                    </button>
+                    <button
+                      type="submit"
+                      className="rounded-xl bg-purple-600 px-4 py-2 font-semibold text-white hover:bg-purple-500"
+                    >
+                      Enviar feedback
+                    </button>
+                  </div>
+                </form>
+              ) : (
+                <div className="space-y-4 text-slate-300">
+                  {modalContent.body.map((item) => (
+                    <p key={item} className="leading-7">
+                      {item}
+                    </p>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </footer>
   );
 }

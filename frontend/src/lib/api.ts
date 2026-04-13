@@ -45,25 +45,23 @@ export const initializeGame = async (playerNation: string = 'ESP', forceReset: b
   nations_created: number;
   player_nation: Nation;
 }>> => {
-  console.log('==========================================');
-  console.log('📡 API.TS - initializeGame LLAMADO');
-  console.log('📡 Parámetro recibido:', playerNation);
-  console.log('📡 Force Reset:', forceReset);
-  console.log('📡 Tipo:', typeof playerNation);
-  console.log('📡 Length:', playerNation.length);
-  
-  // Usar params en lugar de query string manual
-  const response = await api.post('/api/game/initialize', null, {
-    params: { 
-      player_nation: playerNation,
-      force_reset: forceReset
-    }
+  const response = await fetch('/api/secure/game/initialize', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      playerNation,
+      forceReset,
+    }),
   });
-  
-  console.log('✅ Respuesta recibida:', response.status);
-  console.log('==========================================');
-  
-  return response.data;
+
+  const data = await response.json();
+  if (!response.ok) {
+    throw new Error(data?.detail || 'Error al inicializar el juego');
+  }
+
+  return data;
 };
 
 export const getGameState = async (): Promise<GameState> => {
@@ -215,8 +213,19 @@ export const processAgentTurn = async (): Promise<{
     details: any;
   }>;
 }> => {
-  const response = await api.post('/api/agents/process-turn');
-  return response.data;
+  const response = await fetch('/api/secure/agents/process-turn', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  });
+
+  const data = await response.json();
+  if (!response.ok) {
+    throw new Error(data?.detail || 'Error procesando turno de IA');
+  }
+
+  return data;
 };
 
 export const getAgentsStatus = async () => {

@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { initializeGame } from '@/lib/api';
 
 export default function ResetPage() {
   const router = useRouter();
@@ -17,18 +18,9 @@ export default function ResetPage() {
     setMessage('');
 
     try {
-      // Llamar al endpoint con force_reset=true para eliminar juego existente
-      const response = await fetch('http://localhost:8000/api/game/initialize?player_nation=ESP&force_reset=true', {
-        method: 'POST'
-      });
-
-      if (response.ok) {
-        setMessage('✅ Juego reseteado exitosamente');
-        setTimeout(() => router.push('/'), 1500);
-      } else {
-        const error = await response.json();
-        setMessage(`❌ Error: ${error.detail || 'Error desconocido'}`);
-      }
+      await initializeGame('ESP', true);
+      setMessage('✅ Juego reseteado exitosamente');
+      setTimeout(() => router.push('/'), 1500);
     } catch (err) {
       setMessage('❌ Error al resetear el juego');
       console.error(err);
