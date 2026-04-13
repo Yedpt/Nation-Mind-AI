@@ -9,6 +9,11 @@ import ToastNotification, { useToast } from '@/components/ToastNotification';
 
 export default function Home() {
   const router = useRouter();
+  const backendTarget =
+    process.env.NEXT_PUBLIC_API_URL ||
+    (process.env.NODE_ENV === 'production'
+      ? 'https://nation-mind-ai.onrender.com'
+      : 'http://localhost:8000');
   const [nations, setNations] = useState<AvailableNation[]>([]);
   const [selectedNation, setSelectedNation] = useState<string>('');
   const [isInitializing, setIsInitializing] = useState(false);
@@ -41,7 +46,7 @@ export default function Home() {
       }
     } catch (error) {
       setBackendStatus('error');
-      setError('No se pudo conectar con el backend. Asegúrate de que esté corriendo en http://localhost:8000');
+      setError(`No se pudo conectar con el backend. URL objetivo: ${backendTarget}`);
       if (!backendStatusToastShown.current) {
         showToast('error', 'Backend no disponible', 'Revisa que la API esté activa antes de comenzar', 4500);
         backendStatusToastShown.current = true;
