@@ -324,7 +324,7 @@ export default function Footer() {
             </div>
           </div>
           <p className="mt-4 text-center text-xs text-slate-500">
-            Hecho con ❤️ para jugadores de estrategia
+            Hecho con I.A. y buenas ideas para mentes que quieren gobernar en grande
           </p>
         </div>
       </div>

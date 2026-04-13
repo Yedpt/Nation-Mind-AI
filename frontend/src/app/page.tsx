@@ -228,7 +228,7 @@ export default function Home() {
                           : 'bg-slate-700 text-slate-300 hover:bg-slate-600 hover:text-white'}
                       `}
                     >
-                      Governar {nation.name}
+                      Gobernar {nation.name}
                     </button>
                   </div>
                 );
