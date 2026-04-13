@@ -48,6 +48,11 @@ class Settings(BaseSettings):
     CHROMADB_PORT: int = int(os.getenv("CHROMADB_PORT", "8001"))
     # Si USE_CHROMADB_HTTP es True, usa HttpClient (Docker); si no, usa PersistentClient (local)
     USE_CHROMADB_HTTP: bool = os.getenv("USE_CHROMADB_HTTP", "False").lower() == "true"
+
+    # Vector store
+    VECTOR_BACKEND: str = os.getenv("VECTOR_BACKEND", "chroma")
+    VECTOR_TABLE_NAME: str = os.getenv("VECTOR_TABLE_NAME", "event_embeddings")
+    VECTOR_EMBEDDING_DIM: int = int(os.getenv("VECTOR_EMBEDDING_DIM", "384"))
     
     # LLM Configuration
     LLM_MODEL: str = os.getenv("LLM_MODEL", "llama-3.1-70b-versatile")

@@ -5,7 +5,7 @@ services:
   
   # PostgreSQL - Base de datos principal
   postgres:
-    image: postgres:15-alpine
+    image: pgvector/pgvector:pg15
     container_name: nationmind_postgres
     restart: unless-stopped
     environment:
@@ -76,6 +76,11 @@ services:
       CHROMADB_HOST: chromadb
       CHROMADB_PORT: 8000
       USE_CHROMADB_HTTP: "True"
+
+      # Vector backend (chroma | supabase)
+      VECTOR_BACKEND: ${VECTOR_BACKEND:-chroma}
+      VECTOR_TABLE_NAME: ${VECTOR_TABLE_NAME:-event_embeddings}
+      VECTOR_EMBEDDING_DIM: ${VECTOR_EMBEDDING_DIM:-384}
       
       # Entorno
       ENVIRONMENT: development

@@ -1,11 +1,10 @@
 """
 Servicio RAG (Retrieval Augmented Generation)
-Sistema de memoria para agentes IA usando ChromaDB
+Sistema de memoria para agentes IA con almacenamiento vectorial intercambiable.
 """
 import chromadb
 from typing import List, Dict, Any, Optional
 from sentence_transformers import SentenceTransformer
-import os
 from sqlalchemy.orm import Session
 
 from ..models.event import Event
@@ -14,16 +13,32 @@ from ..config import settings
 
 class RAGService:
     """
-    Servicio para gestionar la memoria del sistema usando ChromaDB
-    
-    Los eventos del juego se almacenan como vectores (embeddings) para que
-    los agentes IA puedan recuperar eventos relevantes del pasado y tomar
-    decisiones informadas.
+    Servicio para gestionar la memoria del sistema usando un vector store.
+
+    En desarrollo usa ChromaDB. En producción puede usar Supabase Vector
+    (PostgreSQL + pgvector) sin cambiar el resto de la aplicación.
     """
     
     def __init__(self):
-        """Inicializar ChromaDB y modelo de embeddings"""
-        
+        """Inicializar el backend vectorial y el modelo de embeddings."""
+
+        self.backend = settings.VECTOR_BACKEND.strip().lower()
+
+        # Cargar modelo para crear embeddings
+        # sentence-transformers/all-MiniLM-L6-v2 es pequeño y rápido (80MB)
+        self.embedding_model = SentenceTransformer('all-MiniLM-L6-v2')
+
+        if self.backend == "supabase":
+            from .supabase_vector_store import SupabaseVectorStore
+
+            self.store = SupabaseVectorStore(self.embedding_model)
+            stats = self.store.get_stats()
+            print("✅ RAG Service inicializado con Supabase Vector")
+            print(f"🌐 Backend vectorial: {stats['backend']}")
+            print(f"🗃️ Tabla vectorial: {stats['collection_name']}")
+            print(f"📊 Eventos en colección: {stats['total_events']}")
+            return
+
         # Configurar ChromaDB según el modo (HTTP para Docker, Persistent para local)
         if settings.USE_CHROMADB_HTTP:
             # Modo Docker: conectar a ChromaDB como servicio HTTP
@@ -45,10 +60,6 @@ class RAGService:
             metadata={"description": "Historical events from the geopolitical simulator"}
         )
         
-        # Cargar modelo para crear embeddings
-        # sentence-transformers/all-MiniLM-L6-v2 es pequeño y rápido (80MB)
-        self.embedding_model = SentenceTransformer('all-MiniLM-L6-v2')
-        
         print("✅ RAG Service inicializado")
         if settings.USE_CHROMADB_HTTP:
             print(f"🌐 ChromaDB HTTP: {settings.CHROMADB_HOST}:{settings.CHROMADB_PORT}")
@@ -67,6 +78,9 @@ class RAGService:
         Returns:
             bool: True si se añadió correctamente
         """
+        if self.backend == "supabase":
+            return self.store.add_event(event)
+
         try:
             # Crear texto descriptivo del evento para vectorizar
             event_text = self._create_event_description(event)
@@ -111,6 +125,9 @@ class RAGService:
         """
         if not events:
             return 0
+
+        if self.backend == "supabase":
+            return self.store.add_events_batch(events)
         
         try:
             # Preparar datos en batch
@@ -164,6 +181,15 @@ class RAGService:
         Returns:
             Lista de eventos relevantes con metadata
         """
+        if self.backend == "supabase":
+            return self.store.search_relevant_events(
+                query=query,
+                n_results=n_results,
+                nation_id=nation_id,
+                event_type=event_type,
+                min_importance=min_importance,
+            )
+
         try:
             # Crear embedding de la query
             query_embedding = self.embedding_model.encode(query).tolist()
@@ -213,6 +239,9 @@ class RAGService:
         Returns:
             Lista de eventos de esa nación
         """
+        if self.backend == "supabase":
+            return self.store.get_nation_history(nation_id, limit)
+
         try:
             results = self.collection.get(
                 where={"nation_id": nation_id},
@@ -287,6 +316,9 @@ class RAGService:
         Returns:
             bool: True si se limpió correctamente
         """
+        if self.backend == "supabase":
+            return self.store.clear_collection()
+
         try:
             self.chroma_client.delete_collection("game_events")
             self.collection = self.chroma_client.create_collection(
@@ -307,6 +339,9 @@ class RAGService:
         Returns:
             dict: Estadísticas de uso
         """
+        if self.backend == "supabase":
+            return self.store.get_stats()
+
         return {
             "total_events": self.collection.count(),
             "persist_directory": settings.CHROMA_PERSIST_DIR,

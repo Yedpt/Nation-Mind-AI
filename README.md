@@ -7,7 +7,7 @@
 [![LangGraph](https://img.shields.io/badge/LangGraph-1C3C3C?style=for-the-badge&logo=langchain&logoColor=white)](https://langchain-ai.github.io/langgraph/)
 [![Groq](https://img.shields.io/badge/Groq-F55036?style=for-the-badge&logo=groq&logoColor=white)](https://groq.com/)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-316192?style=for-the-badge&logo=postgresql&logoColor=white)](https://www.postgresql.org/)
-[![ChromaDB](https://img.shields.io/badge/ChromaDB-FF6A00?style=for-the-badge)](https://www.trychroma.com/)
+[![Supabase](https://img.shields.io/badge/Supabase-3ECF8E?style=for-the-badge&logo=supabase&logoColor=white)](https://supabase.com/)
 
 ---
 
@@ -1354,27 +1354,57 @@ NEXT_PUBLIC_API_URL=http://localhost:8000
 
 ### Deploy a Producción
 
-#### Opción 1: Vercel (Frontend) + Railway (Backend)
+#### Opción recomendada: Vercel (Frontend) + Render (Backend) + Supabase (PostgreSQL)
 
-**Frontend en Vercel:**
-```bash
-cd frontend
-npm install -g vercel
-vercel login
-vercel deploy --prod
-```
+**1. Supabase - Base de datos**
+1. Crea un proyecto nuevo en Supabase.
+2. Ve a la sección de base de datos y copia la cadena de conexión PostgreSQL.
+3. Pega esa URL en `DATABASE_URL`.
+4. Activa `pgvector` si vas a mover la capa RAG a Supabase Vector.
+5. Ejecuta [backend/supabase_vector.sql](backend/supabase_vector.sql) en el SQL editor de Supabase.
 
-Configurar en Vercel:
-- Build Command: `npm run build`
-- Output Directory: `.next`
-- Environment Variable: `NEXT_PUBLIC_API_URL=https://tu-backend.railway.app`
+**2. Render - Backend FastAPI**
+1. Crea un servicio web nuevo y conecta este repositorio.
+2. Selecciona la carpeta `backend` como raíz del servicio.
+3. Usa Dockerfile como método de despliegue.
+4. Configura estas variables de entorno:
+  - `DATABASE_URL` con la URL de Supabase.
+  - `GROQ_API_KEY` con tu clave de Groq.
+  - `API_KEY` con una clave secreta propia.
+  - `ENVIRONMENT=production`.
+  - `DEBUG=False`.
+  - `ALLOWED_ORIGINS` con la URL pública de Vercel.
+  - `VECTOR_BACKEND=supabase`.
+  - `LLM_MODEL=llama-3.1-8b-instant`.
+5. Despliega y espera a que Render genere la URL pública del backend.
+6. Verifica que `https://tu-backend.onrender.com/api/health` responda 200.
 
-**Backend en Railway:**
-1. Conecta GitHub en railway.app
-2. Selecciona repositorio Nation-Mind-AI
-3. Railway detecta `Dockerfile` automáticamente
-4. Agrega PostgreSQL addon
-5. Configura variables de entorno (Groq API Key, etc)
+**3. Vercel - Frontend Next.js**
+1. Crea un proyecto nuevo en Vercel y conecta el mismo repositorio.
+2. Selecciona la carpeta `frontend` como directorio raíz.
+3. Configura estas variables de entorno:
+  - `NEXT_PUBLIC_API_URL` con la URL pública del backend en Render.
+  - `BACKEND_INTERNAL_URL` con la misma URL pública del backend.
+  - `BACKEND_API_KEY` con el mismo valor que `API_KEY` del backend.
+4. Lanza el deploy y revisa que la home cargue sin errores.
+5. Prueba que el flujo de inicialización del juego y el procesado de turno funcionen desde el navegador.
+
+**4. Qué no desplegar**
+1. No subas `pgAdmin` a producción; es solo para administración local.
+2. No despliegues Redis si no lo estás usando realmente.
+3. Si mantienes ChromaDB en local, úsalo solo como fallback de desarrollo; en producción el vector backend debe ser Supabase.
+
+**5. Orden recomendado de despliegue**
+1. Supabase primero, para obtener `DATABASE_URL`.
+2. Render después, para validar el backend con la base de datos real.
+3. Vercel al final, apuntando al backend ya publicado.
+
+**6. Verificación final**
+1. Abre la home pública de Vercel.
+2. Verifica que el toast de conexión del backend aparezca correctamente.
+3. Inicia una partida nueva.
+4. Ejecuta un turno IA.
+5. Comprueba que los eventos y el estado se guardan en la base de datos.
 
 #### Opción 2: Docker en VPS
 
