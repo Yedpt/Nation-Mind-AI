@@ -7,6 +7,7 @@ from sqlalchemy.orm import Session
 from typing import Dict, Any
 
 from ..models.database import get_db
+from ..config.security import require_api_key
 from ..services.agent_service import get_agent_service
 from ..services.turn_service import TurnService
 
@@ -14,7 +15,10 @@ router = APIRouter(prefix="/api/agents", tags=["AI Agents"])
 
 
 @router.post("/process-turn")
-def process_ai_turn(db: Session = Depends(get_db)) -> Dict[str, Any]:
+def process_ai_turn(
+    db: Session = Depends(get_db),
+    _: None = Depends(require_api_key)
+) -> Dict[str, Any]:
     """
     Procesar el turno de todas las naciones IA.
     

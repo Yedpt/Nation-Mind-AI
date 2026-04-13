@@ -2,11 +2,12 @@
 Controller para endpoints RAG (Sistema de Memoria)
 Rutas: /api/memory/*
 """
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, HTTPException, status, Depends
 from typing import Optional
 from pydantic import BaseModel
 
 from ..services.rag_service import get_rag_service
+from ..config.security import require_api_key
 
 router = APIRouter(prefix="/api/memory", tags=["Memory (RAG)"])
 
@@ -139,7 +140,7 @@ def get_agent_context(request: AgentContextRequest):
 
 
 @router.delete("/clear")
-def clear_memory():
+def clear_memory(_: None = Depends(require_api_key)):
     """
     ⚠️ PELIGRO: Limpiar toda la memoria RAG
     
@@ -163,7 +164,7 @@ def clear_memory():
 
 
 @router.post("/reindex")
-def reindex_events_from_db():
+def reindex_events_from_db(_: None = Depends(require_api_key)):
     """
     Reindexar todos los eventos desde PostgreSQL a ChromaDB
     

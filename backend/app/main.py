@@ -7,6 +7,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 import time
 import logging
+from collections import deque
+from typing import Deque, Dict, Tuple
 
 # Configurar logging
 logging.basicConfig(
@@ -57,6 +59,36 @@ app = FastAPI(
     lifespan=lifespan
 )
 
+# Rate limiting simple en memoria (solo para endpoints sensibles)
+RATE_LIMIT_PATHS = {
+    "/api/agents/process-turn",
+}
+RATE_LIMIT_STORE: Dict[str, Deque[float]] = {}
+
+
+def _check_rate_limit(client_key: str) -> Tuple[bool, int]:
+    """Retorna (is_limited, retry_after_seconds)."""
+    from .config.settings import settings
+
+    max_requests = settings.RATE_LIMIT_MAX_REQUESTS
+    window_seconds = settings.RATE_LIMIT_WINDOW_SECONDS
+
+    if max_requests <= 0:
+        return False, 0
+
+    now = time.time()
+    q = RATE_LIMIT_STORE.setdefault(client_key, deque())
+
+    while q and now - q[0] > window_seconds:
+        q.popleft()
+
+    if len(q) >= max_requests:
+        retry_after = int(window_seconds - (now - q[0])) if q else window_seconds
+        return True, max(retry_after, 1)
+
+    q.append(now)
+    return False, 0
+
 # CORS para permitir peticiones desde el frontend
 app.add_middleware(
     CORSMiddleware,
@@ -77,6 +109,23 @@ async def log_requests(request: Request, call_next):
     
     # Log de la petición entrante
     logger.info(f"🌐 {request.method} {request.url.path}")
+
+    # Rate limiting en endpoints sensibles
+    if request.url.path in RATE_LIMIT_PATHS:
+        client_ip = request.headers.get("x-forwarded-for", request.client.host or "unknown")
+        key = f"{client_ip}:{request.url.path}"
+        limited, retry_after = _check_rate_limit(key)
+        if limited:
+            from fastapi.responses import JSONResponse
+
+            return JSONResponse(
+                status_code=429,
+                content={
+                    "detail": "Rate limit exceeded",
+                    "retry_after_seconds": retry_after,
+                },
+                headers={"Retry-After": str(retry_after)},
+            )
     
     response = await call_next(request)
     

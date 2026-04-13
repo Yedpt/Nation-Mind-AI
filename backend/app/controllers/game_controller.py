@@ -7,6 +7,7 @@ from sqlalchemy.orm import Session
 from typing import Optional, List, Dict, Any
 
 from ..models.database import get_db
+from ..config.security import require_api_key
 from ..services.game_service import GameService
 from ..services.nation_service import NationService
 from ..schemas.game_schema import ActionRequest, GameStateResponse, MessageResponse
@@ -32,7 +33,8 @@ def get_available_nations():
 def initialize_game(
     player_nation: str = Query("ESP", description="Código de la nación del jugador (USA, CHN, RUS, DEU, GBR, FRA, JPN, ESP)"),
     force_reset: bool = Query(False, description="Si es True, elimina el juego existente antes de inicializar uno nuevo"),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    _: None = Depends(require_api_key)
 ):
     """
     Inicializar un nuevo juego
