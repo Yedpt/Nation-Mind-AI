@@ -22,53 +22,68 @@ export default function Footer() {
           icon: '🎮',
           title: 'Cómo Jugar',
           subtitle: 'Los fundamentos para arrancar una partida sólida.',
+          accent: 'border-purple-500/40 bg-purple-500/10 text-purple-100',
+          badge: 'Inicio rápido',
           body: [
             'Selecciona una nación al inicio y gobierna tu país turno a turno.',
             'Gestiona diplomacia, economía y ejército mientras las otras naciones actúan por IA.',
             'Tu objetivo es crecer, sobrevivir y buscar una condición de victoria antes que el resto.',
           ],
+          highlights: ['Turnos', 'Estrategia', 'IA'],
         };
       case 'strategy':
         return {
           icon: '🧠',
           title: 'Estrategias',
           subtitle: 'Ideas prácticas para jugar con más ventaja.',
+          accent: 'border-sky-500/40 bg-sky-500/10 text-sky-100',
+          badge: 'Guía táctica',
           body: [
             'No gastes todo al principio: reserva recursos para responder a guerras y alianzas.',
             'Si tu economía crece, tus decisiones futuras tienen mucho más margen.',
             'Usa la diplomacia para ganar tiempo y la guerra solo cuando tengas ventaja real.',
           ],
+          highlights: ['Economía', 'Diplomacia', 'Guerra'],
         };
       case 'nations':
         return {
           icon: '🌍',
           title: 'Guía de Naciones',
           subtitle: 'Cómo leer las personalidades y fortalezas del tablero.',
+          accent: 'border-emerald-500/40 bg-emerald-500/10 text-emerald-100',
+          badge: 'Mapa mental',
           body: [
             'Cada nación tiene personalidad, poder militar, económico y diplomático distintos.',
             'Las personalidades influyen en su estilo: agresivas, diplomáticas, defensivas o expansionistas.',
             'Explora la ficha de cada nación en la partida para detectar fortalezas y debilidades.',
           ],
+          highlights: ['Personalidad', 'Poder', 'Objetivos'],
         };
       case 'updates':
         return {
           icon: '🚀',
           title: 'Actualizaciones',
           subtitle: 'Sección en construcción para roadmap y changelog.',
+          accent: 'border-amber-500/40 bg-amber-500/10 text-amber-100',
+          badge: 'Próximamente',
           body: [
             'Pronto tendrás aquí un changelog visual con las mejoras más recientes.',
             'También se pueden mostrar notas de balance, nuevas naciones y cambios en IA.',
           ],
+          highlights: ['Roadmap', 'Balance', 'Novedades'],
         };
       case 'feedback':
         return {
           icon: '📝',
           title: 'Feedback',
           subtitle: 'Cuéntanos qué mejorarías en la experiencia.',
+          accent: 'border-fuchsia-500/40 bg-fuchsia-500/10 text-fuchsia-100',
+          badge: 'Formulario visual',
           body: [
             'De momento este formulario es decorativo: todavía no envía datos a ningún servicio.',
             'Úsalo para validar el diseño antes de conectar almacenamiento o email.',
           ],
+          highlights: ['UI', 'Opinión', 'Iteración'],
         };
       default:
         return null;
@@ -341,6 +356,35 @@ export default function Footer() {
             </div>
 
             <div className="relative px-6 py-6">
+              <div className={`mb-5 rounded-2xl border px-4 py-4 ${modalContent.accent}`}>
+                <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="rounded-xl bg-slate-950/70 px-3 py-2 text-lg shadow-inner shadow-black/20">
+                      {modalContent.icon}
+                    </div>
+                    <div>
+                      <p className="text-[11px] font-semibold uppercase tracking-[0.24em] opacity-80">
+                        {modalContent.badge}
+                      </p>
+                      <p className="mt-1 text-sm leading-6 text-slate-200/90">
+                        {modalContent.subtitle}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-wrap gap-2">
+                    {modalContent.highlights.map((label) => (
+                      <span
+                        key={label}
+                        className="rounded-full border border-white/10 bg-slate-950/70 px-3 py-1 text-[11px] font-medium text-slate-200"
+                      >
+                        {label}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
               {activeModal === 'feedback' ? (
                 <form onSubmit={handleFeedbackSubmit} className="space-y-5">
                   <p className="rounded-2xl border border-slate-700/80 bg-slate-950/70 px-4 py-3 text-sm text-slate-300">
@@ -416,14 +460,22 @@ export default function Footer() {
                   </div>
                 </form>
               ) : (
-                <div className="space-y-3">
+                <div className="grid gap-3">
                   {modalContent.body.map((item, index) => (
                     <div
                       key={item}
-                      className="rounded-2xl border border-slate-700/70 bg-slate-950/60 px-4 py-3 text-slate-200"
+                      className="relative overflow-hidden rounded-2xl border border-slate-700/70 bg-slate-950/60 px-4 py-4 text-slate-200"
                     >
-                      <p className="text-xs uppercase tracking-[0.18em] text-slate-500">Punto {index + 1}</p>
-                      <p className="mt-1 leading-7">{item}</p>
+                      <div className="absolute left-0 top-0 h-full w-1 bg-gradient-to-b from-transparent via-white/25 to-transparent" />
+                      <div className="flex items-start gap-3 pl-2">
+                        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-white/10 bg-white/5 text-xs font-bold text-white/80">
+                          0{index + 1}
+                        </div>
+                        <div className="flex-1">
+                          <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Punto {index + 1}</p>
+                          <p className="mt-1 leading-7 text-slate-200">{item}</p>
+                        </div>
+                      </div>
                     </div>
                   ))}
                 </div>
