@@ -12,11 +12,15 @@ import type {
   Turn
 } from '@/types';
 
-const API_BASE_URL =
+const normalizeBackendBaseUrl = (value: string): string =>
+  value.replace(/\/+$/, '').replace(/\/api$/i, '');
+
+const API_BASE_URL = normalizeBackendBaseUrl(
   process.env.NEXT_PUBLIC_API_URL ||
-  (process.env.NODE_ENV === 'production'
-    ? 'https://nation-mind-ai.onrender.com'
-    : 'http://localhost:8000');
+    (process.env.NODE_ENV === 'production'
+      ? 'https://nation-mind-ai.onrender.com'
+      : 'http://localhost:8000')
+);
 
 const api = axios.create({
   baseURL: API_BASE_URL,
